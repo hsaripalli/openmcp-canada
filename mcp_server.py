@@ -564,7 +564,7 @@ def query_datastore(resource_id: str, q: str = "", filters: str = "",
         res_info = _ckan_get("resource_show", id=resource_id)
         pkg_id = res_info.get("package_id", "")
         if pkg_id:
-            citation = (f"\n\n---\n**Source Citation Required**: "
+            citation = (f"\n\n---\n**Source**: "
                         f"[open.canada.ca/data/en/dataset/{pkg_id}]"
                         f"(https://open.canada.ca/data/en/dataset/{pkg_id})")
     except Exception:
@@ -598,7 +598,7 @@ def preview_remote_file(file_url: str, max_rows: int = MAX_PREVIEW_ROWS,
     if not file_url:
         return "Error: No file URL provided."
     low = file_url.lower()
-    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url})"
+    citation = f"\n\n---\n**Source**: [{file_url}]({file_url})"
     try:
         if low.endswith((".xlsx", ".xls")):
             df = _read_tabular(file_url, nrows=max_rows,
@@ -733,7 +733,7 @@ def query_excel_sheet(file_url: str, sheet_name: str, sql_query: str) -> str:
         return f"Error executing query: {e}"
     if out.empty:
         return "Query ran successfully but returned 0 rows."
-    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url}) — sheet: `{sheet_name}`"
+    citation = f"\n\n---\n**Source**: [{file_url}]({file_url}) — sheet: `{sheet_name}`"
     return _df_to_md(_clean_df(out)) + citation
 
 
@@ -760,7 +760,7 @@ def query_remote_file(file_url: str, sql_query: str) -> str:
     if _WRITE_RE.search(sql_query):
         return "Error: only read-only SELECT queries are permitted."
 
-    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url})"
+    citation = f"\n\n---\n**Source**: [{file_url}]({file_url})"
     low = file_url.lower()
 
     # ZIP files must be downloaded and extracted first — DuckDB httpfs can't unzip
@@ -837,7 +837,7 @@ def read_pdf(file_url: str, pages: str = "1-10") -> str:
         parts.append(f"--- page {i + 1} ---\n{text if text else '(no extractable text — possibly scanned image)'}")
     if end < n:
         parts.append(f"\n_{n - end} more pages — call again with pages='{end + 1}-{min(end + 10, n)}'._")
-    parts.append(f"\n---\n**Source Citation Required**: [{file_url}]({file_url})")
+    parts.append(f"\n---\n**Source**: [{file_url}]({file_url})")
     return "\n\n".join(parts)
 
 
