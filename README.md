@@ -1,4 +1,4 @@
-# OpenMCP Canada — talk to 47,000 Canadian government datasets
+# OpenMCP Canada — Discover and query 25,000+ Canadian government datasets
 
 An MCP server that lets Claude (or any MCP client) discover and query the
 Government of Canada Open Data portal ([open.canada.ca](https://open.canada.ca))
