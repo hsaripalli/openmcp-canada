@@ -19,11 +19,14 @@ streaming over the file URL.
 import io
 import re
 import json
+import ssl
 import zipfile
 import concurrent.futures
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 import duckdb
 from mcp.server.fastmcp import FastMCP
@@ -57,6 +60,41 @@ _WRITE_RE = re.compile(
     r"create\s+table|create\s+or\s+replace)\b",
     re.IGNORECASE,
 )
+
+
+# ── robust remote file download ──────────────────────────────────────────────
+# Some government hosts (statcan.gc.ca in particular) intermittently reset the
+# TLS 1.3 handshake under `requests`'/curl's default negotiation, even though a
+# retry with TLS 1.2 pinned succeeds immediately. Retry on transient errors,
+# then fall back to a TLS-1.2-pinned connection before giving up.
+_retry = Retry(total=3, connect=3, read=3, backoff_factor=0.5,
+                status_forcelist=(500, 502, 503, 504))
+_dl_session = requests.Session()
+_dl_session.mount("https://", HTTPAdapter(max_retries=_retry))
+_dl_session.mount("http://", HTTPAdapter(max_retries=_retry))
+
+
+class _TLS12Adapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = ssl.create_default_context()
+        ctx.maximum_version = ssl.TLSVersion.TLSv1_2
+        kwargs["ssl_context"] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+
+def _robust_get(url: str, timeout: int = None) -> requests.Response:
+    """GET a remote file with retries; falls back to TLS 1.2 on handshake resets."""
+    timeout = timeout or HTTP_TIMEOUT
+    try:
+        resp = _dl_session.get(url, timeout=timeout)
+        resp.raise_for_status()
+        return resp
+    except (requests.exceptions.ConnectionError, requests.exceptions.SSLError):
+        tls12 = requests.Session()
+        tls12.mount("https://", _TLS12Adapter(max_retries=_retry))
+        resp = tls12.get(url, timeout=timeout)
+        resp.raise_for_status()
+        return resp
 
 
 # ── helpers ────────────────────────────────────────────────────────────────────
@@ -141,8 +179,7 @@ def _excel_file(url: str) -> "pd.ExcelFile":
     if hit and time.time() - hit[1] < _EXCEL_TTL:
         data = hit[0]
     else:
-        resp = requests.get(url, timeout=HTTP_TIMEOUT)
-        resp.raise_for_status()
+        resp = _robust_get(url)
         data = resp.content
         if len(_EXCEL_CACHE) >= _EXCEL_CACHE_MAX:
             del _EXCEL_CACHE[min(_EXCEL_CACHE, key=lambda k: _EXCEL_CACHE[k][1])]
@@ -201,8 +238,7 @@ def _read_tabular(url: str, nrows: Optional[int] = None,
     kw = {"nrows": nrows} if nrows else {}
 
     if low.endswith(".zip"):
-        resp = requests.get(url, timeout=HTTP_TIMEOUT)
-        resp.raise_for_status()
+        resp = _robust_get(url)
         with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
             names = [n for n in zf.namelist()
                      if n.lower().endswith(".csv") and "__MACOSX" not in n]
@@ -230,8 +266,7 @@ def _read_tabular(url: str, nrows: Optional[int] = None,
         return df
 
     if low.endswith(".json"):
-        resp = requests.get(url, timeout=HTTP_TIMEOUT)
-        resp.raise_for_status()
+        resp = _robust_get(url)
         df = pd.read_json(io.BytesIO(resp.content))
         return df.head(nrows) if nrows else df
 
@@ -816,8 +851,7 @@ def read_pdf(file_url: str, pages: str = "1-10") -> str:
         return "Error: invalid range (max 20 pages per call, 1-indexed)."
 
     try:
-        resp = requests.get(file_url, timeout=HTTP_TIMEOUT * 3)
-        resp.raise_for_status()
+        resp = _robust_get(file_url, timeout=HTTP_TIMEOUT * 3)
         from pypdf import PdfReader
         reader = PdfReader(io.BytesIO(resp.content))
     except Exception as e:
