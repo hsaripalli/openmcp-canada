@@ -517,6 +517,9 @@ def query_datastore(resource_id: str, q: str = "", filters: str = "",
     No file download — the portal's database does the filtering. Use this for large
     resources (the fast path for "find these rows in a huge table").
 
+    CRITICAL: You must cite the dataset source URL in your response to the user.
+    The source URL is included at the end of the tool's return text.
+
     Args:
         resource_id: Resource UUID (from get_dataset).
         q: Full-text search across all columns (e.g., "Calgary").
@@ -561,7 +564,7 @@ def query_datastore(resource_id: str, q: str = "", filters: str = "",
         res_info = _ckan_get("resource_show", id=resource_id)
         pkg_id = res_info.get("package_id", "")
         if pkg_id:
-            citation = (f"\n\n---\n**Source**: "
+            citation = (f"\n\n---\n**Source Citation Required**: "
                         f"[open.canada.ca/data/en/dataset/{pkg_id}]"
                         f"(https://open.canada.ca/data/en/dataset/{pkg_id})")
     except Exception:
@@ -583,6 +586,9 @@ def preview_remote_file(file_url: str, max_rows: int = MAX_PREVIEW_ROWS,
     Preview the first rows of a remote CSV/JSON/Parquet/XLSX resource via DuckDB.
     Use for resources where datastore_active is false (plain file downloads).
 
+    CRITICAL: You must cite the dataset source URL in your response to the user.
+    The source URL is included at the end of the tool's return text.
+
     Args:
         file_url: Direct resource download URL (from get_dataset).
         max_rows: Rows to preview (default 15).
@@ -592,7 +598,7 @@ def preview_remote_file(file_url: str, max_rows: int = MAX_PREVIEW_ROWS,
     if not file_url:
         return "Error: No file URL provided."
     low = file_url.lower()
-    citation = f"\n\n---\n**Source**: [{file_url}]({file_url})"
+    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url})"
     try:
         if low.endswith((".xlsx", ".xls")):
             df = _read_tabular(file_url, nrows=max_rows,
@@ -699,6 +705,9 @@ def query_excel_sheet(file_url: str, sheet_name: str, sql_query: str) -> str:
     Run a read-only DuckDB SQL query against a single sheet of a remote Excel workbook.
     Use '{sheet}' as the table placeholder. Call list_excel_sheets first to get names.
 
+    CRITICAL: You must cite the dataset source URL in your response to the user.
+    The source URL is included at the end of the tool's return text.
+
     Example:
         query_excel_sheet(url, "2024 Data",
             "SELECT region, SUM(amount) FROM '{sheet}' GROUP BY region")
@@ -724,7 +733,7 @@ def query_excel_sheet(file_url: str, sheet_name: str, sql_query: str) -> str:
         return f"Error executing query: {e}"
     if out.empty:
         return "Query ran successfully but returned 0 rows."
-    citation = f"\n\n---\n**Source**: [{file_url}]({file_url}) — sheet: `{sheet_name}`"
+    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url}) — sheet: `{sheet_name}`"
     return _df_to_md(_clean_df(out)) + citation
 
 
@@ -734,6 +743,9 @@ def query_remote_file(file_url: str, sql_query: str) -> str:
     Run a read-only DuckDB SQL query directly on a remote file (CSV/Parquet/JSON/ZIP).
     Use '{file}' as the table placeholder. For datastore-backed resources prefer
     query_datastore (faster, server-side). ZIP files containing CSV are fully supported.
+
+    CRITICAL: You must cite the dataset source URL in your response to the user.
+    The source URL is included at the end of the tool's return text.
 
     Example:
         query_remote_file(url, "SELECT province, COUNT(*) FROM '{file}' GROUP BY province")
@@ -748,7 +760,7 @@ def query_remote_file(file_url: str, sql_query: str) -> str:
     if _WRITE_RE.search(sql_query):
         return "Error: only read-only SELECT queries are permitted."
 
-    citation = f"\n\n---\n**Source**: [{file_url}]({file_url})"
+    citation = f"\n\n---\n**Source Citation Required**: [{file_url}]({file_url})"
     low = file_url.lower()
 
     # ZIP files must be downloaded and extracted first — DuckDB httpfs can't unzip
@@ -784,6 +796,9 @@ def read_pdf(file_url: str, pages: str = "1-10") -> str:
     """
     Extract text from a remote PDF resource (reports, publications, documentation).
     Many open.canada.ca datasets are PDF-only — use this to read them after discovery.
+
+    CRITICAL: You must cite the dataset source URL in your response to the user.
+    The source URL is included at the end of the tool's return text.
 
     Args:
         file_url: Direct URL to a .pdf resource (from get_dataset).
@@ -822,7 +837,7 @@ def read_pdf(file_url: str, pages: str = "1-10") -> str:
         parts.append(f"--- page {i + 1} ---\n{text if text else '(no extractable text — possibly scanned image)'}")
     if end < n:
         parts.append(f"\n_{n - end} more pages — call again with pages='{end + 1}-{min(end + 10, n)}'._")
-    parts.append(f"\n---\n**Source**: [{file_url}]({file_url})")
+    parts.append(f"\n---\n**Source Citation Required**: [{file_url}]({file_url})")
     return "\n\n".join(parts)
 
 
