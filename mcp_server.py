@@ -859,10 +859,11 @@ def query_canada_data(question: str) -> str:
         "   - datastore_active = true  → `get_resource_fields` then `query_datastore`\n"
         "   - false + CSV/Parquet      → `get_file_schema` then `query_remote_file`\n"
         "   - false + Excel            → `list_excel_sheets` then `query_excel_sheet`\n"
-        "4. In your final answer include:\n"
-        "   - A direct response to the question with numbers/facts from the data.\n"
-        "   - The dataset title and a clickable link to open.canada.ca (from the tool response).\n"
-        "   - The publisher/organization name."
+        "4. In your final answer, integrate numbered inline citations (e.g. [1], [2]) next to any data points, statistics, or facts you mention.\n"
+        "5. At the very end of your response, add a '### 📚 Sources' section containing a clean markdown table formatting the sources like this:\n"
+        "   | Citation | Source Dataset / Resource | Publisher | Link |\n"
+        "   |---|---|---|---|\n"
+        "   | [1] | [Dataset Title](Dataset Page URL) | Organization Name | [Direct File Link / API](Direct URL) |"
     )
 
 
@@ -875,12 +876,15 @@ def explore_dataset(topic: str) -> str:
     return (
         f"I want to explore what Government of Canada open data exists on: {topic!r}\n\n"
         "Please:\n"
-        "1. Call `semantic_search_datasets(topic)` — show me the top results with links.\n"
+        "1. Call `semantic_search_datasets(topic)` — show me the top results.\n"
         "2. For the most relevant dataset, call `get_dataset(id)` to list its resources.\n"
         "3. Pick the most interesting resource and call `preview_remote_file(url)` "
         "   (or `list_excel_sheets` if it's an Excel file) to show a sample of the data.\n"
         "4. Summarise what columns/fields are available and what questions this data could answer.\n"
-        "Always include the dataset URL so I can visit the source page."
+        "5. Format your output with inline citations (e.g. [1]) and end with a '### 📚 Sources' table:\n"
+        "   | Citation | Dataset | Publisher | Link |\n"
+        "   |---|---|---|---|\n"
+        "   | [1] | [Dataset Title](Dataset Page URL) | Organization | [Direct File Link](Direct URL) |"
     )
 
 
@@ -893,14 +897,12 @@ def compare_datasets(topic: str) -> str:
         f"Find and compare Government of Canada open datasets related to: {topic!r}\n\n"
         "Steps:\n"
         "1. Call `semantic_search_datasets(topic, limit=6)` to get a broad set of results.\n"
-        "2. For each result summarise:\n"
-        "   - Dataset title (with clickable link)\n"
-        "   - Publisher / organization\n"
-        "   - Resource formats available (CSV, Excel, etc.)\n"
-        "   - Whether any resources are API-queryable (datastore_active = true)\n"
-        "   - Date last modified (from the search results)\n"
+        "2. Compare the datasets using a markdown table. Show title, publisher, format, queryability, and last modified date.\n"
         "3. Recommend which dataset is best for analytical queries and why.\n"
-        "Present the comparison as a markdown table, then give your recommendation."
+        "4. Integrate inline citations (e.g. [1]) for any facts/dates you mention, and include a '### 📚 Sources' section at the very end with clickable links to the datasets' portal pages formatted as a clean markdown table:\n"
+        "   | Citation | Dataset | Publisher | Link |\n"
+        "   |---|---|---|---|\n"
+        "   | [1] | [Dataset Title](Dataset Page URL) | Organization | [Direct File Link](Direct URL) |"
     )
 
 
