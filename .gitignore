@@ -1,0 +1,18 @@
+# Virtual Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Local Database & Data dumps
+catalog.duckdb
+catalog.duckdb.tmp
+*.jsonl.gz
+*.jsonl
+
+# IDE configuration & environment files
+.env
+.idea/
+.vscode/
+.codex/
+.mcp.json

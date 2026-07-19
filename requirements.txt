@@ -1,0 +1,10 @@
+mcp
+requests
+pandas
+duckdb
+tabulate
+openpyxl
+pyarrow
+fastembed
+pypdf
+tqdm
