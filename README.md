@@ -4,13 +4,9 @@ An MCP server that lets Claude (or any MCP client) discover and query the
 Government of Canada Open Data portal ([open.canada.ca](https://open.canada.ca))
 in plain English.
 
-Ask *"how do interest rates affect housing prices?"* and Claude finds the right
-StatCan tables, queries them, and answers with citations — no SQL knowledge, no
-CSV downloads, no hunting through the portal.
+Ask *"how do interest rates affect housing prices?"* and Claude semantically searches the indexed datasets, queries the relevant resources, and answers with source dataset links — no manual downloads or hunting through the portal required.
 
-**Zero API keys required.** Semantic search runs on a local embedding model
-(bge-small-en-v1.5 via [fastembed](https://github.com/qdrant/fastembed)); querying
-goes through the portal's public CKAN API and DuckDB.
+**Zero API keys required.** Semantic search runs on a local embedding model (bge-small-en-v1.5 via [fastembed](https://github.com/qdrant/fastembed)); data querying is powered by CKAN's public API and DuckDB.
 
 ## How it works
 
