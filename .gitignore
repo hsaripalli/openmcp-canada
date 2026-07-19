@@ -16,3 +16,6 @@ catalog.duckdb.tmp
 .vscode/
 .codex/
 .mcp.json
+
+# Local planning notes — not for public repo
+ROADMAP.md

@@ -63,15 +63,26 @@ _WRITE_RE = re.compile(
 
 
 # ── robust remote file download ──────────────────────────────────────────────
-# Some government hosts (statcan.gc.ca in particular) intermittently reset the
-# TLS 1.3 handshake under `requests`'/curl's default negotiation, even though a
-# retry with TLS 1.2 pinned succeeds immediately. Retry on transient errors,
-# then fall back to a TLS-1.2-pinned connection before giving up.
+# Some government hosts (statcan.gc.ca in particular) intermittently reset
+# connections from clients with the default `python-requests/x.y` User-Agent,
+# and some also mishandle TLS 1.3 negotiation. Send a browser-ish UA, retry
+# transient errors, then fall back to a TLS-1.2-pinned connection.
+_UA = {"User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "OpenMCP-Canada/1.0")}
 _retry = Retry(total=3, connect=3, read=3, backoff_factor=0.5,
                 status_forcelist=(500, 502, 503, 504))
 _dl_session = requests.Session()
+_dl_session.headers.update(_UA)
 _dl_session.mount("https://", HTTPAdapter(max_retries=_retry))
 _dl_session.mount("http://", HTTPAdapter(max_retries=_retry))
+
+# Transient network failures worth retrying over TLS 1.2. ChunkedEncodingError
+# is a RequestException but NOT a ConnectionError subclass — a premature body
+# termination would otherwise escape the fallback.
+_TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
+                     requests.exceptions.SSLError,
+                     requests.exceptions.ChunkedEncodingError)
 
 
 class _TLS12Adapter(HTTPAdapter):
@@ -89,8 +100,9 @@ def _robust_get(url: str, timeout: int = None) -> requests.Response:
         resp = _dl_session.get(url, timeout=timeout)
         resp.raise_for_status()
         return resp
-    except (requests.exceptions.ConnectionError, requests.exceptions.SSLError):
+    except _TRANSIENT_ERRORS:
         tls12 = requests.Session()
+        tls12.headers.update(_UA)
         tls12.mount("https://", _TLS12Adapter(max_retries=_retry))
         resp = tls12.get(url, timeout=timeout)
         resp.raise_for_status()
@@ -100,7 +112,7 @@ def _robust_get(url: str, timeout: int = None) -> requests.Response:
 # ── helpers ────────────────────────────────────────────────────────────────────
 def _ckan_get(action: str, **params) -> Dict[str, Any]:
     """Call a CKAN Action API endpoint (GET) and return the `result` payload."""
-    resp = requests.get(f"{CKAN_BASE}/{action}", params=params, timeout=HTTP_TIMEOUT)
+    resp = _dl_session.get(f"{CKAN_BASE}/{action}", params=params, timeout=HTTP_TIMEOUT)
     resp.raise_for_status()
     body = resp.json()
     if not body.get("success"):
@@ -820,7 +832,15 @@ def query_remote_file(file_url: str, sql_query: str) -> str:
     except TimeoutError as e:
         return str(e)
     except Exception as e:
-        return f"Error executing query: {e}"
+        # DuckDB httpfs uses its own HTTP stack (no User-Agent, no TLS 1.2
+        # fallback) and gets reset by some government hosts that _robust_get
+        # handles fine. Download the bytes ourselves and query the buffer.
+        try:
+            df_local = _read_tabular(file_url)
+            local_sql = sql_query.replace("'{file}'", "df").replace("{file}", "df")
+            df = _query_dataframe(local_sql, df_local)
+        except Exception as e2:
+            return f"Error executing query: {e}\n(Local download fallback also failed: {e2})"
     if df.empty:
         return "Query ran successfully but returned 0 rows."
     return _df_to_md(_clean_df(df)) + citation
