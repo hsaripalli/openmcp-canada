@@ -32,8 +32,8 @@ Every response includes a source link back to open.canada.ca.
 ## Quick start
 
 ```bash
-git clone https://github.com/hsaripalli/openmcp-canada.git
-cd openmcp-canada
+git clone https://github.com/hsaripalli/openmcp.git
+cd openmcp
 python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 ```
@@ -41,7 +41,7 @@ venv/bin/pip install -r requirements.txt
 ### Get the search index
 
 The semantic index (`catalog.duckdb`, ~120MB) is too large for git. Download it
-from the [latest release](https://github.com/hsaripalli/openmcp-canada/releases) and put it in the project root.
+from the [latest release](https://github.com/hsaripalli/openmcp/releases) and put it in the project root.
 
 ### Client Setup (Universal MCP Standard)
 
@@ -153,8 +153,6 @@ OPENMCP_TELEMETRY_DISABLED=true
 export OPENMCP_TELEMETRY_DISABLED=true
 ```
 
-
 ## License
 
 MIT
-

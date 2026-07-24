@@ -1,8 +1,11 @@
-# Virtual Environments
+# Virtual environments
 venv/
 .venv/
+env/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # Local Database & Data dumps
 catalog.duckdb
@@ -10,12 +13,13 @@ catalog.duckdb.tmp
 *.jsonl.gz
 *.jsonl
 
-# IDE configuration & environment files
+# Environment variables & local configuration
 .env
-.idea/
+.env.local
+
+# System & IDE files
+.DS_Store
 .vscode/
+.idea/
 .codex/
 .mcp.json
-
-# Local planning notes — not for public repo
-ROADMAP.md
