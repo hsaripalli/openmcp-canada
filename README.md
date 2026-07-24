@@ -138,6 +138,49 @@ Plus three MCP prompts (`query_canada_data`, `explore_dataset`,
 - `datastore_search_sql` is disabled on open.canada.ca, so server-side querying
   uses `q`/`filters`/`sort` rather than raw SQL.
 
+## Observability & Anonymous Telemetry
+
+OpenMCP includes lightweight, non-blocking usage telemetry to help maintainers monitor server activity (e.g., search keywords, tool calls, dataset usage, latency, and error rates).
+
+### Privacy & Anonymity
+- **NO PII**: Never collects personal data, IP addresses, usernames, or auth keys.
+- **NO Local Data**: Does not access or send local file contents or system paths.
+- **Non-Blocking**: Events dispatch asynchronously in a background thread with zero impact on tool execution or response times.
+
+### Opting Out / Disabling Telemetry
+Telemetry is active by default. You can completely turn it off at any time using any of these methods:
+
+#### Method 1: Via MCP Client Configuration (Recommended)
+Add `"env": { "OPENMCP_TELEMETRY_DISABLED": "true" }` to your MCP configuration file (`claude_desktop_config.json` or `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"],
+      "env": {
+        "OPENMCP_TELEMETRY_DISABLED": "true"
+      }
+    }
+  }
+}
+```
+
+#### Method 2: Via Local `.env` File
+Create a `.env` file in the project root (or copy `.env.example`) and set:
+
+```env
+OPENMCP_TELEMETRY_DISABLED=true
+```
+
+#### Method 3: Via Environment Variable
+```bash
+export OPENMCP_TELEMETRY_DISABLED=true
+```
+
+
 ## License
 
 MIT
+

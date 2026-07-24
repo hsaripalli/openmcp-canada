@@ -35,10 +35,24 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Load .env so telemetry (and any other) config is picked up regardless of launcher
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+except ImportError:
+    pass
+
 from semantic.embed import embed_texts
 from semantic.store import top_k, DB_PATH, get_by_ids
+from telemetry import log_telemetry, is_telemetry_disabled
 
 mcp = FastMCP("OpenMCP Canada — open.canada.ca")
+
+if is_telemetry_disabled():
+    sys.stderr.write("[OpenMCP] Anonymous telemetry disabled via environment variable.\n")
+else:
+    sys.stderr.write("[OpenMCP] Anonymous telemetry active (opt out with OPENMCP_TELEMETRY_DISABLED=true).\n")
+
 
 # ── CKAN Action API (open.canada.ca is GET-only; pass params in the URL) ───────
 CKAN_BASE = "https://open.canada.ca/data/en/api/3/action"
@@ -294,6 +308,7 @@ def _read_tabular(url: str, nrows: Optional[int] = None,
 # DISCOVERY
 # =====================================================================
 @mcp.tool()
+@log_telemetry("semantic_search_datasets")
 def semantic_search_datasets(query: str, limit: int = 10) -> str:
     """
     Find Government of Canada open datasets by semantic meaning or natural language questions.
@@ -435,6 +450,7 @@ def semantic_search_datasets(query: str, limit: int = 10) -> str:
 
 
 @mcp.tool()
+@log_telemetry("search_datasets")
 def search_datasets(query: str, limit: int = 5) -> str:
     """
     Search the Government of Canada Open Data portal (open.canada.ca) for datasets.
@@ -476,6 +492,7 @@ def search_datasets(query: str, limit: int = 5) -> str:
 
 
 @mcp.tool()
+@log_telemetry("get_dataset")
 def get_dataset(dataset_id: str) -> str:
     """
     Get a dataset's metadata and all its resources (CKAN package_show).
@@ -532,6 +549,7 @@ def get_dataset(dataset_id: str) -> str:
 # SERVER-SIDE QUERY (datastore)  — the fast path, no download
 # =====================================================================
 @mcp.tool()
+@log_telemetry("get_resource_fields")
 def get_resource_fields(resource_id: str) -> str:
     """
     Get the column names and types for a datastore-backed resource — no data download.
@@ -557,6 +575,7 @@ def get_resource_fields(resource_id: str) -> str:
 
 
 @mcp.tool()
+@log_telemetry("query_datastore")
 def query_datastore(resource_id: str, q: str = "", filters: str = "",
                     sort: str = "", limit: int = 50, offset: int = 0) -> str:
     """
@@ -627,6 +646,7 @@ def query_datastore(resource_id: str, q: str = "", filters: str = "",
 # FILE FALLBACK (DuckDB)  — for resources without a datastore
 # =====================================================================
 @mcp.tool()
+@log_telemetry("preview_remote_file")
 def preview_remote_file(file_url: str, max_rows: int = MAX_PREVIEW_ROWS,
                         sheet_name: str = "") -> str:
     """
@@ -664,6 +684,7 @@ def preview_remote_file(file_url: str, max_rows: int = MAX_PREVIEW_ROWS,
 
 
 @mcp.tool()
+@log_telemetry("get_file_schema")
 def get_file_schema(file_url: str, sheet_name: str = "") -> str:
     """
     Get column names and types for a remote CSV/Parquet/JSON file via DuckDB DESCRIBE
@@ -704,6 +725,7 @@ def get_file_schema(file_url: str, sheet_name: str = "") -> str:
 
 
 @mcp.tool()
+@log_telemetry("list_excel_sheets")
 def list_excel_sheets(file_url: str) -> str:
     """
     List every sheet in a remote Excel workbook with its row/column counts and columns.
@@ -747,6 +769,7 @@ def list_excel_sheets(file_url: str) -> str:
 
 
 @mcp.tool()
+@log_telemetry("query_excel_sheet")
 def query_excel_sheet(file_url: str, sheet_name: str, sql_query: str) -> str:
     """
     Run a read-only DuckDB SQL query against a single sheet of a remote Excel workbook.
@@ -785,6 +808,7 @@ def query_excel_sheet(file_url: str, sheet_name: str, sql_query: str) -> str:
 
 
 @mcp.tool()
+@log_telemetry("query_remote_file")
 def query_remote_file(file_url: str, sql_query: str) -> str:
     """
     Run a read-only DuckDB SQL query directly on a remote file (CSV/Parquet/JSON/ZIP).
@@ -847,6 +871,7 @@ def query_remote_file(file_url: str, sql_query: str) -> str:
 
 
 @mcp.tool()
+@log_telemetry("read_pdf")
 def read_pdf(file_url: str, pages: str = "1-10") -> str:
     """
     Extract text from a remote PDF resource (reports, publications, documentation).
