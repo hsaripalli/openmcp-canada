@@ -47,8 +47,7 @@ from the [latest release](https://github.com/hsaripalli/openmcp-canada/releases)
 
 OpenMCP uses the standard **MCP stdio protocol**, making it compatible out of the box with any MCP client application (**Claude Desktop**, **Claude Code**, **Gemini CLI**, **ChatGPT Desktop**, **Cursor**, **Cline / Roo Code**, **Windsurf**, **Zed**, **Continue.dev**, **Goose**, etc.).
 
-#### 1. Universal Configuration (`mcpServers`)
-Add this standard JSON block to your client's MCP settings file (e.g. `claude_desktop_config.json`, `.mcp.json`, `cline_mcp_settings.json`, `mcp_config.json`):
+Add this standard JSON block to your client's MCP configuration file (e.g. `claude_desktop_config.json`, `.mcp.json`, `cline_mcp_settings.json`, `mcp_config.json`):
 
 ```json
 {
@@ -59,13 +58,6 @@ Add this standard JSON block to your client's MCP settings file (e.g. `claude_de
     }
   }
 }
-```
-
-#### 2. Quick CLI Command (Claude Code)
-From the project directory:
-
-```bash
-claude mcp add openmcp -- ./venv/bin/python ./mcp_server.py
 ```
 
 ## Tools
