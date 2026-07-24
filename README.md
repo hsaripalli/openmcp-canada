@@ -32,8 +32,8 @@ Every response includes a source link back to open.canada.ca.
 ## Quick start
 
 ```bash
-git clone https://github.com/<you>/openMCP.git
-cd openMCP
+git clone https://github.com/hsaripalli/openmcp-canada.git
+cd openmcp-canada
 python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 ```
@@ -41,9 +41,13 @@ venv/bin/pip install -r requirements.txt
 ### Get the search index
 
 The semantic index (`catalog.duckdb`, ~120MB) is too large for git. Download it
-from the [latest release](../../releases) and put it in the project root.
+from the [latest release](https://github.com/hsaripalli/openmcp-canada/releases) and put it in the project root.
 
-### Use with Claude Code
+### Client Setup Instructions
+
+OpenMCP uses the standard **MCP stdio protocol**, making it compatible with any MCP client application.
+
+#### Claude Code
 
 From the project directory:
 
@@ -51,8 +55,7 @@ From the project directory:
 claude mcp add openmcp -- ./venv/bin/python ./mcp_server.py
 ```
 
-Or add a `.mcp.json` in your project root (checked into your own projects, so
-teammates get it too):
+Or add `.mcp.json` in your project root:
 
 ```json
 {
@@ -65,10 +68,7 @@ teammates get it too):
 }
 ```
 
-Then just ask: *"Find data on boil water advisories and tell me which provinces
-have the most."* Check it's connected with `/mcp`.
-
-### Use with Claude Desktop
+#### Claude Desktop
 
 Add to `claude_desktop_config.json`
 (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
@@ -84,7 +84,67 @@ Add to `claude_desktop_config.json`
 }
 ```
 
-Restart Claude Desktop; the tools appear under the 🔌 icon.
+#### Cursor
+
+1. Open **Cursor Settings** -> **Features** -> **MCP**.
+2. Click **+ Add New MCP Server**.
+3. Set **Type**: `command` (stdio).
+4. Set **Name**: `openmcp`.
+5. Set **Command**: `/absolute/path/to/openMCP/venv/bin/python /absolute/path/to/openMCP/mcp_server.py`
+
+#### Cline / Roo Code (VS Code)
+
+Add to `cline_mcp_settings.json` or `roo_code_mcp_settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  }
+}
+```
+
+#### Windsurf (Cascade)
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  }
+}
+```
+
+#### Continue.dev
+
+Add to `~/.continue/config.json`:
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "openmcp",
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  ]
+}
+```
+
+#### Any Other MCP Client (stdio)
+
+OpenMCP runs as a standard stdio executable:
+
+```bash
+/absolute/path/to/openMCP/venv/bin/python /absolute/path/to/openMCP/mcp_server.py
+```
 
 ## Tools
 
