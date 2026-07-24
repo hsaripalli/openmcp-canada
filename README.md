@@ -43,160 +43,29 @@ venv/bin/pip install -r requirements.txt
 The semantic index (`catalog.duckdb`, ~120MB) is too large for git. Download it
 from the [latest release](https://github.com/hsaripalli/openmcp-canada/releases) and put it in the project root.
 
-### Client Setup Instructions
+### Client Setup (Universal MCP Standard)
 
-OpenMCP uses the standard **MCP stdio protocol**, making it compatible with any MCP client application.
+OpenMCP uses the standard **MCP stdio protocol**, making it compatible out of the box with any MCP client application (**Claude Desktop**, **Claude Code**, **Gemini CLI**, **ChatGPT Desktop**, **Cursor**, **Cline / Roo Code**, **Windsurf**, **Zed**, **Continue.dev**, **Goose**, etc.).
 
-#### Claude Code
+#### 1. Universal Configuration (`mcpServers`)
+Add this standard JSON block to your client's MCP settings file (e.g. `claude_desktop_config.json`, `.mcp.json`, `cline_mcp_settings.json`, `mcp_config.json`):
 
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  }
+}
+```
+
+#### 2. Quick CLI Command (Claude Code)
 From the project directory:
 
 ```bash
 claude mcp add openmcp -- ./venv/bin/python ./mcp_server.py
-```
-
-Or add `.mcp.json` in your project root:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### Claude Desktop
-
-Add to `claude_desktop_config.json`
-(macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### Cursor
-
-1. Open **Cursor Settings** -> **Features** -> **MCP**.
-2. Click **+ Add New MCP Server**.
-3. Set **Type**: `command` (stdio).
-4. Set **Name**: `openmcp`.
-5. Set **Command**: `/absolute/path/to/openMCP/venv/bin/python /absolute/path/to/openMCP/mcp_server.py`
-
-#### Cline / Roo Code (VS Code)
-
-Add to `cline_mcp_settings.json` or `roo_code_mcp_settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### Windsurf (Cascade)
-
-Add to `~/.codeium/windsurf/mcp_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### Gemini CLI & Google AI Agents
-
-Add to `.mcp.json` or your Gemini agent settings:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### ChatGPT Desktop & OpenAI Apps
-
-In ChatGPT Desktop or OpenAI developer tools supporting MCP apps:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
-```
-
-#### Zed Editor
-
-Add to `~/.config/zed/settings.json`:
-
-```json
-{
-  "context_servers": {
-    "openmcp": {
-      "command": {
-        "path": "/absolute/path/to/openMCP/venv/bin/python",
-        "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-      }
-    }
-  }
-}
-```
-
-#### Goose AI Agent
-
-Add to `~/.config/goose/config.yaml`:
-
-```yaml
-extensions:
-  openmcp:
-    name: openmcp
-    type: stdio
-    cmd: /absolute/path/to/openMCP/venv/bin/python
-    args: ["/absolute/path/to/openMCP/mcp_server.py"]
-```
-
----
-
-### Is there a Universal Standard Way?
-
-**Yes.** Model Context Protocol (MCP) communicates over standard input/output (**stdio**). Almost all modern AI tools (Claude, Gemini CLI, ChatGPT Desktop, Cursor, Roo Code, Windsurf, Zed, etc.) use the identical `mcpServers` JSON block:
-
-```json
-{
-  "mcpServers": {
-    "openmcp": {
-      "command": "/absolute/path/to/openMCP/venv/bin/python",
-      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
-    }
-  }
-}
 ```
 
 ## Tools
