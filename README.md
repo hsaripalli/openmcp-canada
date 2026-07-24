@@ -122,28 +122,81 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 }
 ```
 
-#### Continue.dev
+#### Gemini CLI & Google AI Agents
 
-Add to `~/.continue/config.json`:
+Add to `.mcp.json` or your Gemini agent settings:
 
 ```json
 {
-  "mcpServers": [
-    {
-      "name": "openmcp",
+  "mcpServers": {
+    "openmcp": {
       "command": "/absolute/path/to/openMCP/venv/bin/python",
       "args": ["/absolute/path/to/openMCP/mcp_server.py"]
     }
-  ]
+  }
 }
 ```
 
-#### Any Other MCP Client (stdio)
+#### ChatGPT Desktop & OpenAI Apps
 
-OpenMCP runs as a standard stdio executable:
+In ChatGPT Desktop or OpenAI developer tools supporting MCP apps:
 
-```bash
-/absolute/path/to/openMCP/venv/bin/python /absolute/path/to/openMCP/mcp_server.py
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  }
+}
+```
+
+#### Zed Editor
+
+Add to `~/.config/zed/settings.json`:
+
+```json
+{
+  "context_servers": {
+    "openmcp": {
+      "command": {
+        "path": "/absolute/path/to/openMCP/venv/bin/python",
+        "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+      }
+    }
+  }
+}
+```
+
+#### Goose AI Agent
+
+Add to `~/.config/goose/config.yaml`:
+
+```yaml
+extensions:
+  openmcp:
+    name: openmcp
+    type: stdio
+    cmd: /absolute/path/to/openMCP/venv/bin/python
+    args: ["/absolute/path/to/openMCP/mcp_server.py"]
+```
+
+---
+
+### Is there a Universal Standard Way?
+
+**Yes.** Model Context Protocol (MCP) communicates over standard input/output (**stdio**). Almost all modern AI tools (Claude, Gemini CLI, ChatGPT Desktop, Cursor, Roo Code, Windsurf, Zed, etc.) use the identical `mcpServers` JSON block:
+
+```json
+{
+  "mcpServers": {
+    "openmcp": {
+      "command": "/absolute/path/to/openMCP/venv/bin/python",
+      "args": ["/absolute/path/to/openMCP/mcp_server.py"]
+    }
+  }
+}
 ```
 
 ## Tools
